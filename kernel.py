@@ -18,46 +18,6 @@ import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
-class KernelSettings:
-    def __init__(self, fit_baseline=True, fit_improved_baseline=True):
-        self.fit_baseline = fit_baseline
-        self.fit_improved_baseline = fit_improved_baseline
-
-class TargetGroupIterator:
-
-    def __init__(self, target_names, batch_size, basepath):
-        self.target_names = target_names
-        self.target_list = [reverse_train_labels[key] for key in target_names]
-        self.batch_shape = (batch_size, 4, 512, 512)
-        self.basepath = imagepath
-
-    def find_matching_data_entries(self):
-        train_labels["check_col"] = train_labels.Target.apply(
-            lambda l: self.check_subset(l)
-        )
-        self.images_identifier = train_labels[train_labels.check_col==1].Id.values
-        train_labels.drop("check_col", axis=1, inplace=True)
-
-    def check_subset(self, targets):
-        return np.where(set(self.target_list).issuperset(set(targets)), 1, 0)
-
-    def get_loader(self):
-        filenames = []
-        idx = 0
-        images = np.zeros(self.batch_shape)
-        for image_id in self.images_identifier:
-            images[idx,:,:,:] = load_image(self.basepath, image_id)
-            filenames.append(image_id)
-            idx += 1
-            if idx == self.batch_shape[0]:
-                yield filenames, images
-                filenames = []
-                images = np.zeros(self.batch_shape)
-                idx = 0
-        if idx > 0:
-            yield filenames, images
-
-
 def read_file():
     train_labels = pd.read_csv("../data_READONLY/train.csv")
     train_labels.head()
@@ -101,3 +61,12 @@ def make_title(file_id):
     for n in file_targets:
         title += label_names[n] + " - "
     return title
+
+train_files = listdir("../data_READONLY/train.csv")
+test_files = listdir("../test.csv")
+
+def kFold_Cross(train_files, test_files):
+    return np.round(len(test_files)/len(train_files) * 100)
+
+def modelParam():
+    return ModelParameter(trainpath)
