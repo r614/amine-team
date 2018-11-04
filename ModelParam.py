@@ -1,3 +1,4 @@
+import numpy as np
 class ModelParameter:
 
     def __init__(self, basepath,
