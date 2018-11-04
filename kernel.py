@@ -3,13 +3,12 @@ import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 
 import seaborn as sns
 import matplotlib.pyplot as plt
-<<<<<<< HEAD
+
 %matplotlib inline
 =======
 # # Source: kickback
 # # "I think this line is needed if you are running the kernel online as a fork. I just comment out lines like this because I run all of my code on a standalone machine."
 # %matplotlib inline
->>>>>>> 144596da147f18609dcaba67c3b098c50a9a7172
 from PIL import Image
 from scipy.misc import imread
 
@@ -17,11 +16,6 @@ import tensorflow as tf
 sns.set()
 
 import os
-<<<<<<< HEAD
-train_path = "../train.csv"
-imagepath = "/data_READONLY/test"
-=======
-
 import LabelNames
 import ModelParam
 
@@ -31,14 +25,12 @@ TRAIN_PATH = DATA_FOLDER + TRAIN_FILE
 IMAGE_FILE = "test"
 IMAGE_PATH = DATA_FOLDER + IMAGE_FILE
 
->>>>>>> 144596da147f18609dcaba67c3b098c50a9a7172
-
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
 def read_file():
-<<<<<<< HEAD
+
     train_labels = pd.read_csv("../data_READONLY/train.csv")
     train_labels.head()
 
@@ -46,19 +38,18 @@ def read_file():
         train_labels[label_names[key]] = 0
 
     train_labels = train_labels.apply(fill_targets, axis=1)
-=======
+
     # Import csv with Pandas
     train_labels = pd.read_csv(TRAIN_PATH)
-    # Display first few rows of data 
+    # Display first few rows of data
     train_labels.head()
 
     # Run through labels in LabelNames.py, and set the corresponding training label to 0
     for key in LabelNames.label_names.keys():
         train_labels[LabelNames.label_names[key]] = 0
 
-    
+
     train_labels = train_labels.apply(LabelNames.fill_targets, axis=1)
->>>>>>> 144596da147f18609dcaba67c3b098c50a9a7172
     train_labels.head()
 
 def find_counts(special_target, labels):
@@ -102,8 +93,4 @@ def kFold_Cross(train_files, test_files):
     return np.round(len(test_files)/len(train_files) * 100)
 
 def modelParam():
-<<<<<<< HEAD
     return ModelParameter(trainpath)
-=======
-    return ModelParam.ModelParameter(trainpath)
->>>>>>> 144596da147f18609dcaba67c3b098c50a9a7172
