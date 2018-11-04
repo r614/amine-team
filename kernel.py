@@ -11,15 +11,22 @@ import tensorflow as tf
 sns.set()
 
 import os
-train_path = "../train.csv"
-imagepath = "/data_READONLY/test"
+
+data_folder = "../data_READONLY/"
+train_file = "train.csv"
+train_path = data_folder + train_file
+image_file = "test"
+image_path = data_folder + image_file
+
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
 def read_file():
-    train_labels = pd.read_csv("../data_READONLY/train.csv")
+    # Import csv with Pandas
+    train_labels = pd.read_csv(train_path)
+    # Display first few rows of data 
     train_labels.head()
 
     for key in label_names.keys():
