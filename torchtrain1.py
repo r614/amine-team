@@ -35,12 +35,14 @@ learner.clip = 1.0 #gradient clipping
 learner.crit = FocalLoss()
 learner.metrics = [acc]
 
+
+
 learner.unfreeze()
 lrs=np.array([lr/10,lr/3,lr])
 learner.fit(lrs/4,4,cycle_len=2,use_clr=(10,20))
 learner.fit(lrs/16,1,cycle_len=8,use_clr=(5,20))
 
-def save_pred(pred, th=0.5, fname='protein_classification.csv'):
+def save_pred(pred, th=0.5, fname='protein_classification_test.csv'):
     pred_list = []
     for line in pred:
         s = ' '.join(list([str(i) for i in np.nonzero(line>th)[0]]))
@@ -54,4 +56,16 @@ def save_pred(pred, th=0.5, fname='protein_classification.csv'):
     df = pd.DataFrame({'Id':sample_list,'Predicted':pred_list_cor})
     df.to_csv(fname, header=True, index=False)
 
-save_pred(pred)
+
+preds_t,y_t = learner.TTA(n_aug=16,is_test=True)
+preds_t = np.stack(preds_t, axis=-1)
+preds_t = sigmoid_np(preds_t)
+pred_t = preds_t.max(axis=-1)
+
+th_t = np.array([0.565,0.39,0.55,0.345,0.33,0.39,0.33,0.45,0.38,0.39,
+               0.34,0.42,0.31,0.38,0.49,0.50,0.38,0.43,0.46,0.40,
+               0.39,0.505,0.37,0.47,0.41,0.545,0.32,0.1])
+
+save_pred(pred_t,th_t)
+
+
