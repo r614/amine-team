@@ -1,3 +1,5 @@
+##################### LOADING PACKAGES #######################
+
 import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 
@@ -18,6 +20,20 @@ import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
+##################### KERNEL SETTINGS ############################
+
+class KernelSettings:
+    
+    def __init__(self, fit_baseline=False, fit_improved_baseline=False):
+        self.fit_baseline = fit_baseline
+        self.fit_improved_baseline = fit_improved_baseline
+
+# Reduce computation time by setting fit_baseline and/or fit_improved_baseline to false
+# This way prediction probabilties of the corresponding models are loaded as csv from added data source
+kernelsettings = KernelSettings(fit_baseline=True, fit_improved_baseline=False)
+
+######################## LOADING DATA ######################
+
 def read_file():
     train_labels = pd.read_csv("../data_READONLY/train.csv")
     train_labels.head()
@@ -27,6 +43,9 @@ def read_file():
 
     train_labels = train_labels.apply(fill_targets, axis=1)
     train_labels.head()
+
+def sample_size(train_labels):
+    return train_labels.shape[0]
 
 def find_counts(special_target, labels):
     counts = labels[labels[special_target] == 1].drop(
