@@ -66,10 +66,10 @@ def find_counts(special_target, labels):
 
 def load_image(imagepath, image_id):
     images = np.zeros(shape=(4,512,512))
-    images[0,:,:] = imread(basepath + image_id + "_green" + ".png")
-    images[1,:,:] = imread(basepath + image_id + "_red" + ".png")
-    images[2,:,:] = imread(basepath + image_id + "_blue" + ".png")
-    images[3,:,:] = imread(basepath + image_id + "_yellow" + ".png")
+    images[0,:,:] = imread(IMAGE_PATH + image_id + "_green" + ".png")
+    images[1,:,:] = imread(IMAGE_PATH + image_id + "_red" + ".png")
+    images[2,:,:] = imread(IMAGE_PATH + image_id + "_blue" + ".png")
+    images[3,:,:] = imread(IMAGE_PATH + image_id + "_yellow" + ".png")
     return images
 
 def make_image_row(image, subax, title):
