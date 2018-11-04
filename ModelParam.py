@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+import numpy as np
+>>>>>>> 144596da147f18609dcaba67c3b098c50a9a7172
 class ModelParameter:
 
     def __init__(self, basepath,
