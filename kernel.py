@@ -17,7 +17,7 @@ import os
 import LabelNames
 import ModelParam
 
-DATA_FOLDER = "..\\data_READONLY\\"
+DATA_FOLDER = "../data_READONLY/"
 TRAIN_FILE = "train.csv"
 TRAIN_PATH = DATA_FOLDER + TRAIN_FILE
 IMAGE_FILE = "test"
@@ -76,11 +76,11 @@ def make_title(file_id):
         title += label_names[n] + " - "
     return title
 
-train_files = listdir("../data_READONLY/train.csv")
-test_files = listdir("../test.csv")
+train_files = os.listdir("../data_READONLY/train")
+test_files = os.listdir("../data_READONLY/test")
 
 def kFold_Cross(train_files, test_files):
     return np.round(len(test_files)/len(train_files) * 100)
 
 def modelParam():
-    return ModelParam.ModelParameter(trainpath)
+    return ModelParam.ModelParameter(TRAIN_PATH)
