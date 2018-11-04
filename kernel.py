@@ -24,7 +24,8 @@ TRAIN_PATH = DATA_FOLDER + TRAIN_FILE
 IMAGE_FILE = "test"
 IMAGE_PATH = DATA_FOLDER + IMAGE_FILE
 
-PICKLE_TRAIN_FILE = "train.pkl"
+PICKLE_TRAIN_FILE = "train_labels.pkl"
+PICKLE_TRAIN_DATA = "train_data.pkl"
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -72,6 +73,11 @@ def load_image(imagepath, image_id):
     images[3,:,:] = imread(basepath + image_id + "_yellow" + ".png")
     return images
 
+def load_image_1d(imagepath, image_id):
+    image = np.zeros(shape=(512,512))
+    image = imread(basepath + image_id + "_green" + ".png")
+    return image
+
 def make_image_row(image, subax, title):
     subax[0].imshow(image[0], cmap="Greens")
     subax[1].imshow(image[1], cmap="Reds")
@@ -98,3 +104,30 @@ def kFold_Cross(train_files, test_files):
 
 def modelParam():
     return ModelParam.ModelParameter(TRAIN_PATH)
+
+def load_data():
+    train_labels = read_file()
+
+    # Construct the data sets
+    # For every label, load data into a 512*512*4 array
+
+def load_data_1d(reload=False):
+    train_labels = read_file()
+
+    # Full array is number of training samples * image size
+    train_data = np.zeros(shape=(len(train_labels), 512, 512))
+
+    # Construct the data sets
+    # For every label, load the green picture data into a 512*512 array
+    if not reload:
+        if os.path.is_file(PICKLE_TRAIN_DATA):
+            with open(PICKLE_TRAIN_DATA) as input:
+                train_data = pickle.read(input)
+            return train_data
+
+    for i in train_labels.Id:
+        train_data[i,:,:] = load_image_1d(DATA_FOLDER + "/train/")
+    with open("train_data.pkl", "wb+") as output:
+        pickle.dump(train_data, output)
+
+    return train_data
