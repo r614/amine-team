@@ -13,6 +13,7 @@ import tensorflow as tf
 sns.set()
 
 import os
+import _pickle as cPickle
 
 import LabelNames
 import ModelParam
@@ -23,24 +24,37 @@ TRAIN_PATH = DATA_FOLDER + TRAIN_FILE
 IMAGE_FILE = "test"
 IMAGE_PATH = DATA_FOLDER + IMAGE_FILE
 
+PICKLE_TRAIN_FILE = "train.pkl"
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
-def read_file():
+# Read the processed dataset, and cache the object for faster retrieval
+def read_file(reload=False):
+    if not reload:
+        if os.path.isfile(PICKLE_TRAIN_FILE):
+            with open(PICKLE_TRAIN_FILE, 'rb') as input:
+                train_labels = cPickle.load(input)
+                print("Loaded train_labels")
+                return train_labels
+
     # Import csv with Pandas
     train_labels = pd.read_csv(TRAIN_PATH)
     # Display first few rows of data 
-    train_labels.head()
+    print(train_labels.head())
 
     # Run through labels in LabelNames.py, and set the corresponding training label to 0
     for key in LabelNames.label_names.keys():
         train_labels[LabelNames.label_names[key]] = 0
 
-    
     train_labels = train_labels.apply(LabelNames.fill_targets, axis=1)
-    train_labels.head()
+
+    with open(PICKLE_TRAIN_FILE, 'wb+') as output:
+        cPickle.dump(train_labels, output)
+   
+    print("Reloaded train_labels")
+    return train_labels
 
 def find_counts(special_target, labels):
     counts = labels[labels[special_target] == 1].drop(
