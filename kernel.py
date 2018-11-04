@@ -3,9 +3,13 @@ import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 
 import seaborn as sns
 import matplotlib.pyplot as plt
+<<<<<<< HEAD
 # # Source: kickback
 # # "I think this line is needed if you are running the kernel online as a fork. I just comment out lines like this because I run all of my code on a standalone machine."
 # %matplotlib inline
+=======
+%matplotlib inline
+>>>>>>> 36e12efbd8cb2a7de6ae5a5ab982b413d2b2b9a7
 from PIL import Image
 from scipy.misc import imread
 
@@ -14,6 +18,7 @@ sns.set()
 
 import os
 
+<<<<<<< HEAD
 import LabelNames
 import ModelParam
 
@@ -22,6 +27,13 @@ TRAIN_FILE = "train.csv"
 TRAIN_PATH = DATA_FOLDER + TRAIN_FILE
 IMAGE_FILE = "test"
 IMAGE_PATH = DATA_FOLDER + IMAGE_FILE
+=======
+data_folder = "../data_READONLY/"
+train_file = "train.csv"
+train_path = data_folder + train_file
+image_file = "test"
+image_path = data_folder + image_file
+>>>>>>> 36e12efbd8cb2a7de6ae5a5ab982b413d2b2b9a7
 
 
 import warnings
@@ -30,6 +42,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 def read_file():
     # Import csv with Pandas
+<<<<<<< HEAD
     train_labels = pd.read_csv(TRAIN_PATH)
     # Display first few rows of data 
     train_labels.head()
@@ -40,6 +53,16 @@ def read_file():
 
     
     train_labels = train_labels.apply(LabelNames.fill_targets, axis=1)
+=======
+    train_labels = pd.read_csv(train_path)
+    # Display first few rows of data 
+    train_labels.head()
+
+    for key in label_names.keys():
+        train_labels[label_names[key]] = 0
+
+    train_labels = train_labels.apply(fill_targets, axis=1)
+>>>>>>> 36e12efbd8cb2a7de6ae5a5ab982b413d2b2b9a7
     train_labels.head()
 
 def find_counts(special_target, labels):
@@ -83,4 +106,8 @@ def kFold_Cross(train_files, test_files):
     return np.round(len(test_files)/len(train_files) * 100)
 
 def modelParam():
+<<<<<<< HEAD
     return ModelParam.ModelParameter(trainpath)
+=======
+    return ModelParameter(trainpath)
+>>>>>>> 36e12efbd8cb2a7de6ae5a5ab982b413d2b2b9a7
