@@ -1,71 +1,134 @@
-import LabelNames as ln
-import submissions_test as sn
 import pandas as pd
-import fastai.conv_learner
-import fastai.dataset
-import numpy as np
 import torch
+import LabelNames as ln
 import torchvision
-import os
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import f1_score
-import scipy.optimize as opt
-import tensorflow as tf
+import torchvision.transforms as transforms
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.utils.data import DataLoader
+from torch.utils.data import Dataset
+import matplotlib
+import matplotlib.pyplot as plt
 
 
 PATH = './'
 pictures_folder = '../data_READONLY/train'
 test_folder = '../data_READONLY/test/'
-train_csv = '../data_READONLY/train.csv'
+train = pd.read_csv('../data_READONLY/train.csv')
+test = pd.read_csv('../data_READONLY/test/test.csv')
 sample_csv = '../data_READONLY/sample_submission.csv'
 
-labels = ln.labelnames()
-nw = 2   #number of workers for data loader
-arch = resnet34 #specify target architecture
 
-pictures = sn.open_rgby(pictures_folder)
+# Split the data into features and labels for each image:
+Y_train = train["label"]
+X_train = train.drop(labels="label",axis=1)
+X_test = test
 
-bs = 64
-sz = 256
-md = sn.get_data(sz, bs)
+# Normalize values:
+X_train = X_train/255.0
+test = test/255.0
 
-learner = ConvLearner.pretrained(arch, md, ps=0.5) #dropout 50%
-learner.opt_fn = optim.Adam
-learner.clip = 1.0 #gradient clipping
-learner.crit = FocalLoss()
-learner.metrics = [acc]
+# Reshape the pixels to their original 512x512 format:
+X_train, Y_train = X_train.values.reshape(-1, 512,512), Y_train.values
+X_test = X_test.values.reshape(-1,512,512)
 
-
-
-learner.unfreeze()
-lrs=np.array([lr/10,lr/3,lr])
-learner.fit(lrs/4,4,cycle_len=2,use_clr=(10,20))
-learner.fit(lrs/16,1,cycle_len=8,use_clr=(5,20))
-
-def save_pred(pred, th=0.5, fname='protein_classification_test.csv'):
-    pred_list = []
-    for line in pred:
-        s = ' '.join(list([str(i) for i in np.nonzero(line>th)[0]]))
-        pred_list.append(s)
-
-    sample_df = pd.read_csv(SAMPLE)
-    sample_list = list(sample_df.Id)
-    pred_dic = dict((key, value) for (key, value)
-                in zip(learner.data.test_ds.fnames,pred_list))
-    pred_list_cor = [pred_dic[id] for id in sample_list]
-    df = pd.DataFrame({'Id':sample_list,'Predicted':pred_list_cor})
-    df.to_csv(fname, header=True, index=False)
+# Split into training and validation:
+X_valid, Y_valid = X_train[-2000:], Y_train[-2000:]
+X_train, Y_train = X_train[:-2000], Y_train[:-2000]
 
 
-preds_t,y_t = learner.TTA(n_aug=16,is_test=True)
-preds_t = np.stack(preds_t, axis=-1)
-preds_t = sigmoid_np(preds_t)
-pred_t = preds_t.max(axis=-1)
+class ImageDataset(Dataset):
+    def __init__(self, X, Y=None):
+        super().__init__()
+        self.X = X
+        self.Y = Y
 
-th_t = np.array([0.565,0.39,0.55,0.345,0.33,0.39,0.33,0.45,0.38,0.39,
-               0.34,0.42,0.31,0.38,0.49,0.50,0.38,0.43,0.46,0.40,
-               0.39,0.505,0.37,0.47,0.41,0.545,0.32,0.1])
+    def __getitem__(self, index):
+        if self.Y is None:
+            return self.X[index]
+        return self.X[index], self.Y[index]
 
-save_pred(pred_t,th_t)
+    def __len__(self):
+        return len(self.X)
 
+trainset = ImageDataset(X_train, Y_train)
+testset = ImageDataset(X_test)
+validset = ImageDataset(X_valid, Y_valid)
+
+# batch_size=how many samples per batch to load
+# num_workers= how many subprocesses to use for data loading
+trainloader = DataLoader(trainset, batch_size=4, shuffle=True, num_workers=2)
+testloader = DataLoader(testset, batch_size=4, shuffle=False, num_workers=2)
+validloader = DataLoader(validset, batch_size=4, shuffle=False)
+
+classes = ln.labelnames()
+
+for i, data in enumerate(trainloader):
+    imgs, labels = data
+    plt.figure()
+    two_d = (np.reshape(imgs[0].numpy()*255, (28, 28))).astype(np.uint8)
+    plt.imshow(two_d, cmap='gray')
+    plt.show()
+    print("Label: ", classes[labels[0]])
+    if i >= 3:
+        break
+
+class CNN(nn.Module):
+    def __init__(self):
+        super(CNN, self).__init__()
+        self.conv1 = nn.Conv2d(1, 10, 5) # stride=1, number of filters=10, filter size=5
+        self.pool = nn.MaxPool2d(2,2) # stride=2, filter size=2
+        self.conv2 = nn.Conv2d(10, 20, 5) #stride=1, number of filters=20, filter size=5 
+        self.fc1 = nn.Linear(20*4*4, 50) # fully connected layer with input size 4x4x20 and output size 50
+        self.fc2 = nn.Linear(50, 10) # fully connected layer with input size 50 and output size 10 
+        
+    def forward(self, x):
+        x = x.unsqueeze(1)
+        x = x.float()
+        a1 = self.pool(F.relu(self.conv1(x)))
+        a2 = self.pool(F.relu(self.conv2(a1)))
+        a3 = a2.view(-1, 20*4*4)
+        a4 = F.relu(self.fc1(a3))
+        a5 = self.fc2(a4)
+        return a5
+
+cnn = CNN()
+
+learning_rate = 0.01
+criterion = nn.CrossEntropyLoss()
+Adam_optimizer = optim.Adam(cnn.parameters(), lr=learning_rate)
+
+
+def train(model, optimizer=optimizer, criterion=criterion, learning_rate=learning_rate, epochs=5):
+    losses = []
+    for epoch in range(epochs):
+        for i, data in enumerate(trainloader):
+            samples, labels = data
+
+            # Zero the parameter gradients
+            optimizer.zero_grad()
+
+            predictions = model(samples)
+            loss = criterion(predictions, labels)
+            loss.backward()
+            optimizer.step()
+
+            # Print some statistics
+            if i % 2000 == 1999:
+                losses.append(loss.data.mean())
+                print('epoch[%d], mini-batch[%5d] loss: %.3f' % (epoch+1, i+1, np.mean(losses)))
+                total_loss = 0
+
+total = 0
+corrects = 0
+
+for data in validloader:
+    images, labels = data
+    outputs = cnn(images)
+    _, predicted_lables = torch.max(outputs.data, 1)
+    total += labels.size(0)
+    corrects += (predicted_lables == labels).sum().item()
+
+print('Accuracy on %d test images is = %d %%' % (total, 100*corrects/total))
 
