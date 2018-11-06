@@ -1,4 +1,4 @@
-# amine-team
+# amine-team || BMIAI Hackathon Code
 
 ## Development setup
 
